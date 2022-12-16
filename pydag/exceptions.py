@@ -1,0 +1,2 @@
+class PyGoCronException(Exception):
+    pass
