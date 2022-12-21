@@ -1,7 +1,7 @@
 from pydag.task import GoCronTask
 from pydag.job import GoCronJob
 from pygocron.pygocron import PyGoCron
-
+from pydag.utils import compose_command  
 
 tm = PyGoCron()
 
@@ -28,17 +28,17 @@ tm = PyGoCron()
 
 # tm = DummyTaskManger()
 
-job = GoCronJob(name="TestJob")
+job = GoCronJob(name="TestJob9", task_manager=tm)
 
-task1 = GoCronTask(name="Sync Data", command="sleep 1", task_manager=tm)  # root
+task1 = GoCronTask(name="Sync Data", command="sleep 1")  # root  command we can compoese a defaukt 
 
-task2 = GoCronTask(name="Feature Engineering1", command="sleep 1", task_manager=tm)
+task2 = GoCronTask(name="Feature Engineering1", command="sleep 1")
 
-task3 = GoCronTask(name="Feature Engineering2", command="sleep 1", task_manager=tm)
+task3 = GoCronTask(name="Feature Engineering2", command="sleep 1")
 
-task4 = GoCronTask(name="Machine Learning", command="sleep 1", task_manager=tm)
+task4 = GoCronTask(name="Machine Learning", command="sleep 1")
 
-task5 = GoCronTask(name="Send Email", command="sleep 1", task_manager=tm)
+task5 = GoCronTask(name="Send Email", command="sleep 1")
 
 task1.set_downstream(task2)
 
@@ -50,12 +50,9 @@ task3.set_downstream(task4)
 
 task4.set_downstream(task5)
 
+job.add_task(task1, task2, task3, task4, task5)   #  我先再需要把run 和 submit 的逻辑解耦
 
-job.add_task(task1, task2, task3, task4, task5)
-
-# print(job)
-
-job.submit()
+job.run()    
 
 
-job.run()
+# 这里还有一个问题在于， 

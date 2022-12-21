@@ -37,13 +37,13 @@ class RunTaskExecutor(Thread):
             task_predecessors_success_num = 0
 
             for predecessor in predecessors:
-                status = predecessor.check_run_status()
+                status = predecessor.check_run_status(self._job._task_manager)
                 if status == "success":
                     task_predecessors_success_num += 1
 
             if len(predecessors) == task_predecessors_success_num:
                 try:
-                    task.run()
+                    task.run(self._job._task_manager)
                 except Exception as e:
                     raise RuntimeError(
                         f"Task not triggered successfully, details: {e.args}"
@@ -71,7 +71,7 @@ class CheckTaskExecutor(Thread):
                 logger.warn("Empty CheckQueue")
                 continue
 
-            status = task.check_run_status()
+            status = task.check_run_status(self._job._task_manager)
 
             if status in ["pendding", "running"]:
                 CheckQueue.put(task)
