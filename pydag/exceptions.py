@@ -1,2 +1,2 @@
-class PyGoCronException(Exception):
-    pass
+class PyDagException(Exception):
+    ...

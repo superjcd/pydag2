@@ -6,6 +6,7 @@ import platform
 import subprocess
 from enum import Enum
 from rich.logging import RichHandler
+from .exceptions import PyDagException
 
 
 class TaskStatus(Enum):
@@ -64,12 +65,12 @@ def compose_command(file: str) -> str:
     file_abpath = os.path.join(os.path.abspath(os.path.curdir), file)
 
     if not os.path.exists(file_abpath):
-        raise Exception(f"file `{file}` not exists in curent directory")
+        raise PyDagException(f"file `{file}` not exists in curent directory")
 
     try:
         suffix = file.split(".")[-1]
     except:
-        raise Exception(
+        raise PyDagException(
             f"Wrong file name `{file}`, proper file name should have suffix, e.g, `.py`, `.ipynb`, etc"
         )
 
@@ -114,7 +115,7 @@ def get_default_executable(command: str, add_sudo=False):
     elif platform_name == "Linux":
         executable = subprocess.check_output(["which", command]).decode("utf-8").strip()
     else:
-        raise Exception(f"Platform `{platform_name}` is not supported yet")
+        raise PyDagException(f"Platform `{platform_name}` is not supported yet")
     if add_sudo:
         return "sudo" + " " + executable
     else:
@@ -128,7 +129,7 @@ def get_default_jupyternb_executable(command: str, add_sudo=False):
     elif platform_name == "Linux":
         executable = subprocess.check_output(["which", command]).decode("utf-8").strip()
     else:
-        raise Exception(f"Platform `{platform_name}` is not supported yet")
+        raise PyDagException(f"Platform `{platform_name}` is not supported yet")
     if add_sudo:
         return "sudo" + " " + executable + " " + "run"
     else:
@@ -142,4 +143,4 @@ def get_enviroment_set_command_by_platform(varible: str, value):
     elif platform_name == "Linux":
         return f"export {varible}={value}"
     else:
-        raise Exception(f"Platform `{platform_name}` is not supported yet")
+        raise PyDagException(f"Platform `{platform_name}` is not supported yet")

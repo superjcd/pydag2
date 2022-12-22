@@ -4,7 +4,7 @@ from .exceptions import PyGoCronException
 from .utils import compose_task_name, TaskStatus
 from .log import BasicJobLogger
 from .environments import TO_RUN_NEW
-
+from .exceptions import PyDagException
 
 class Task:
     def __init__(self, name: str, command: str):
@@ -70,7 +70,7 @@ class GoCronTask(Task):
         elif TO_RUN_NEW == "no":
             task_id = task_manager.get_task_id_by_name(task_name)
         else:
-            raise Exception(
+            raise PyDagException(
                 f"Wrong `PYDAG_RUN_NEW` value, must be one of [`yes`, `no`] (case insensitive)"
             )
 

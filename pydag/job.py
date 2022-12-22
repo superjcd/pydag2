@@ -2,11 +2,13 @@ import os
 from typing import List
 from abc import ABC, abstractclassmethod
 import networkx as nx
+from pygocron.pygocron import PyGoCron
 from .task import Task
 from .utils import draw_graph, prepare_rich_logger
 from .executor import RunQueue, CheckQueue, RunTaskExecutor, CheckTaskExecutor
 from .environments import TO_RUN_NEW
-from pygocron.pygocron import PyGoCron
+from .exceptions import PyDagException
+
 
 logger = prepare_rich_logger("Job")
 
@@ -131,7 +133,7 @@ class GoCronJob(Job):
             logger.info("Prepare to run a existed job")
             return
         else:
-            raise Exception(
+            raise PyDagException(
                 f"Wrong `PYDAG_RUN_NEW` value: {TO_RUN_NEW}, must be one of [`yes`, `no`] (case insensitive)"
             )
 
