@@ -5,6 +5,7 @@ import networkx as nx
 from .task import Task
 from .utils import draw_graph, prepare_rich_logger
 from .executor import RunQueue, CheckQueue, RunTaskExecutor, CheckTaskExecutor
+from .environments import TO_RUN_NEW
 from pygocron.pygocron import PyGoCron
 
 logger = prepare_rich_logger("Job")
@@ -23,6 +24,7 @@ class TaskManger(ABC):
     def check_run_status():
         ...
 
+
 class Job:
     def __init__(self, name: str, task_manager: TaskManger) -> None:
         self.id = self.name = name
@@ -31,14 +33,13 @@ class Job:
         self._graph = nx.DiGraph()
         self._task_manager = task_manager
 
-
     def add_task(self, *tasks):
         self._tasks.extend(tasks)
 
         self._graph.add_nodes_from([task._get_node_presentation() for task in tasks])
 
         edges = []
-        existing_task_names = [task.id for task in self._tasks]  
+        existing_task_names = [task.id for task in self._tasks]
 
         for task in tasks:
             task_edges = task._get_edges()
@@ -94,12 +95,12 @@ class GoCronJob(Job):
     """
 
     def __init__(self, name: str, task_manager: PyGoCron) -> None:
-        super().__init__(name, task_manager)  
+        super().__init__(name, task_manager)
         self._check_job_not_exists_before()
 
     def run(self):
         self._submit_tasks()
-        
+
         logger.info(f"Job `{self.id}` trggered")
         root_task = self.get_root_task()
 
@@ -116,29 +117,40 @@ class GoCronJob(Job):
         check_executor.join()
 
     def _check_job_not_exists_before(self):
-        to_run_new = os.environ.get("PYDAG_RUN_NEW", "yes").lower().strip()
-        if to_run_new == "yes":
+        if TO_RUN_NEW == "yes":
             logger.info("Prepare to run a brand new job")
-            tasks = self._task_manager.get_tasks(tag=self.name) # {'data': [], 'total': 0}
-            if tasks["total"] > 0:  
-                raise RuntimeError(f"Job `{self.name}` already exists, please try another name, or you can delete the existing job and run again")
+            tasks = self._task_manager.get_tasks(
+                tag=self.name
+            )  # {'data': [], 'total': 0}
+            if tasks["total"] > 0:
+                raise RuntimeError(
+                    f"Job `{self.name}` already exists, please try another name, or you can delete the existing job and run again"
+                )
 
-        elif to_run_new == "no":
+        elif TO_RUN_NEW == "no":
             logger.info("Prepare to run a existed job")
             return
         else:
-            raise Exception(f"Wrong `PYDAG_RUN_NEW` value: {to_run_new}, must be one of [`yes`, `no`] (case insensitive)")
+            raise Exception(
+                f"Wrong `PYDAG_RUN_NEW` value: {TO_RUN_NEW}, must be one of [`yes`, `no`] (case insensitive)"
+            )
 
     def _submit_tasks(self):
         for task in self._tasks:
-            task.submit(add_job_name=True, job_name=self.name, tag=self.name,task_manager=self._task_manager)
+            task.submit(
+                add_job_name=True,
+                job_name=self.name,
+                tag=self.name,
+                task_manager=self._task_manager,
+            )
 
     def __repr__(self):
         draw_graph(self._graph)
         return f"<{self.name} with {len(self._tasks)} tasks>"
 
     @staticmethod
-    def delete_job_tasks(task_manager:PyGoCron, job_name:str):
+    def delete_job_tasks(task_manager: PyGoCron, job_name: str):
         task_manager.delete_task_by_tag(job_name)
-        logger.info(f"All tasks belongs to job `{job_name}` have been deleted successfully")
-
+        logger.info(
+            f"All tasks belongs to job `{job_name}` have been deleted successfully"
+        )

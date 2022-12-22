@@ -1,6 +1,6 @@
 from threading import Thread
 from queue import Queue
-from .utils import prepare_rich_logger
+from .utils import prepare_rich_logger, TaskStatus
 import time
 
 logger = prepare_rich_logger("Executor")
@@ -37,16 +37,19 @@ class RunTaskExecutor(Thread):
             task_predecessors_success_num = 0
 
             for predecessor in predecessors:
+                # log here, and base the job
                 status = predecessor.check_run_status(self._job._task_manager)
-                if status == "success":
+                if status == TaskStatus.SUCCESS:
                     task_predecessors_success_num += 1
+
+                # if the status is not right
 
             if len(predecessors) == task_predecessors_success_num:
                 try:
-                    task.run(self._job._task_manager)
-                except Exception as e:
+                    task.run(self._job._task_manager)  # mark failed
+                except Exception as e:  # task.log()
                     raise RuntimeError(
-                        f"Task not triggered successfully, details: {e.args}"
+                        f"Task `{task.name}` not been triggered successfully, details: {e.args}"
                     )
             else:
                 RunQueue.put(task)
@@ -58,6 +61,9 @@ class CheckTaskExecutor(Thread):
         self._job = job
         self._seen_tasks = set()
         self._seen_tasks.add(root_task_id)
+        self._job_start_at = int(
+            time.time()
+        )  # for log, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(_job_start_at))
 
     def run(self) -> None:
         success_checked = 0
@@ -72,21 +78,28 @@ class CheckTaskExecutor(Thread):
                 continue
 
             status = task.check_run_status(self._job._task_manager)
+            
+            try:
+                task.record(self._job.name, self._job_start_at, status)  
+            except AttributeError:
+                # run id and task id is not ready at very beginning
+                pass 
 
-            if status in ["pendding", "running"]:
+            if status in [TaskStatus.RUNNING, TaskStatus.PENDING]:
                 CheckQueue.put(task)
                 time.sleep(
                     10
-                )  # this shold be modify per task, at first time should be very quick
+                ) 
 
-            elif status == "failed":
+            elif status == TaskStatus.FAILED:
                 non_success_checked += 1
                 RunQueue.put(None)
                 raise RuntimeError(f"Task `{task.id}` failed;")
 
-            elif status == "success":
+            elif status == TaskStatus.SUCCESS:
                 success_checked += 1  # the last one
 
+                # all task checked
                 if (success_checked + non_success_checked) == len(self._job._tasks):
                     logger.info(f"All tasks of {self._job.name} finished")
                     RunQueue.put(None)  # also notify RunQueue to terminate

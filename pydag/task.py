@@ -1,8 +1,9 @@
 import os
 from pygocron.pygocron import RunStatus
 from .exceptions import PyGoCronException
-from .utils import compose_task_name
-
+from .utils import compose_task_name, TaskStatus
+from .log import BasicJobLogger
+from .environments import TO_RUN_NEW
 
 
 class Task:
@@ -41,13 +42,16 @@ class Task:
 class GoCronTask(Task):
     def __init__(self, name: str, command: str):
         super().__init__(name, command)
+        self._task_logger = BasicJobLogger()
 
-    def submit(self, add_job_name=False, job_name="", tag="", task_manager=None): 
+    def submit(self, add_job_name=False, job_name="", tag="", task_manager=None):
         """
         submit ad task
         """
         if task_manager == None:
-            raise ValueError("It seems you didn't provide a `task_manger` when definnig a `job`")
+            raise ValueError(
+                "It seems you didn't provide a `task_manger` when definnig a `job`"
+            )
         if add_job_name:
             if job_name:
                 task_name = compose_task_name(job_name, self.name)
@@ -57,17 +61,18 @@ class GoCronTask(Task):
                 )
         else:
             task_name = self.name
-        
-        # check run a brand new job or existing job
-        to_run_new = os.environ.get("PYDAG_RUN_NEW", "yes").lower().strip()
-        if to_run_new == "yes":
+
+        # check if is to run a brand new job or existing job
+        if TO_RUN_NEW == "yes":
             task_id = task_manager.create_task(
                 name=task_name, spec=None, tag=tag, command=self.command, level=2
-            )  
-        elif to_run_new == "no":
-            task_id = task_manager.get_task_id_by_name(task_name) 
+            )
+        elif TO_RUN_NEW == "no":
+            task_id = task_manager.get_task_id_by_name(task_name)
         else:
-            raise Exception(f"Wrong `PYDAG_RUN_NEW` value, must be one of [`yes`, `no`] (case insensitive)")      
+            raise Exception(
+                f"Wrong `PYDAG_RUN_NEW` value, must be one of [`yes`, `no`] (case insensitive)"
+            )
 
         if task_id:
             self.task_id = task_id
@@ -76,7 +81,7 @@ class GoCronTask(Task):
 
     def run(self, task_manager):
         """
-        run a task 
+        run a task, and a run id of the task will be set
         """
 
         run_id = task_manager.run_task(self.task_id)
@@ -90,21 +95,20 @@ class GoCronTask(Task):
         get a runnning task status, either one of ["sucess", "failed", "pendding", "running"]
         """
         if not hasattr(self, "run_id"):
-            # the run_id is set by run method, if task doesn't has a run id, meanning task didn't run yet
-            return "pendding"
+            # the run_id is set by run method, if task doesn't has a run id, meanning task didn't ran yet
+            return TaskStatus.PENDING
 
-        status = task_manager.check_run_status(
-            self.task_id, self.run_id
-        )  # must wait
+        status = task_manager.check_run_status(self.task_id, self.run_id)
 
         if status == RunStatus.SUCCESS:
-            return "success"
+            return TaskStatus.SUCCESS
         elif status == RunStatus.FAILED:
-            return "failed"
+            return TaskStatus.FAILED
         elif status == RunStatus.RUNNING:
-            return "running"
+            return TaskStatus.RUNNING
         elif status == RunStatus.PENDING:
-            return "pendding"
+            return TaskStatus.PENDING
         raise PyGoCronException(f"Wrong status: {status}")
-    
 
+    def record(self, job_name, job_run_at, status:TaskStatus):
+        self._task_logger.record(job_name, job_run_at, self.name, self.run_id, self.task_id, status.value)
