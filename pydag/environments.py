@@ -1,7 +1,7 @@
 import os
 from .exceptions import PyDagException
 
-### Log Store 
+### Log Store
 HOST = os.environ.get("PYDAG_LOG_STORE_HOST", "")
 PASSWORD = os.environ.get("PYDAG_LOG_STORE_PASSWORD", "")
 

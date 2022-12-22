@@ -8,7 +8,7 @@ from .utils import draw_graph, prepare_rich_logger
 from .executor import RunQueue, CheckQueue, RunTaskExecutor, CheckTaskExecutor
 from .environments import TO_RUN_NEW
 from .exceptions import PyDagException
-
+from .log import BasicJobLogger
 
 logger = prepare_rich_logger("Job")
 
@@ -34,6 +34,7 @@ class Job:
         self._tasks: List[Task] = []
         self._graph = nx.DiGraph()
         self._task_manager = task_manager
+        self._job_logger = BasicJobLogger()
 
     def add_task(self, *tasks):
         self._tasks.extend(tasks)
@@ -125,7 +126,7 @@ class GoCronJob(Job):
                 tag=self.name
             )  # {'data': [], 'total': 0}
             if tasks["total"] > 0:
-                raise RuntimeError(
+                raise PyDagException(
                     f"Job `{self.name}` already exists, please try another name, or you can delete the existing job and run again"
                 )
 
@@ -137,7 +138,7 @@ class GoCronJob(Job):
                 f"Wrong `PYDAG_RUN_NEW` value: {TO_RUN_NEW}, must be one of [`yes`, `no`] (case insensitive)"
             )
 
-    def _submit_tasks(self):
+    def _submit_tasks(self, log_job_meta=True):
         for task in self._tasks:
             task.submit(
                 add_job_name=True,
@@ -145,6 +146,8 @@ class GoCronJob(Job):
                 tag=self.name,
                 task_manager=self._task_manager,
             )
+        if log_job_meta:
+            self._job_logger.record_job_info(self.name, self._graph)
 
     def __repr__(self):
         draw_graph(self._graph)

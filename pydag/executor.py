@@ -63,7 +63,7 @@ class CheckTaskExecutor(Thread):
         self._seen_tasks.add(root_task_id)
         self._job_start_at = int(
             time.time()
-        )  # for log, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(_job_start_at))
+        ) 
 
     def run(self) -> None:
         success_checked = 0
@@ -78,18 +78,16 @@ class CheckTaskExecutor(Thread):
                 continue
 
             status = task.check_run_status(self._job._task_manager)
-            
+
             try:
-                task.record(self._job.name, self._job_start_at, status)  
+                task.record(self._job.name, self._job_start_at, status, int(time.time())) 
             except AttributeError:
                 # run id and task id is not ready at very beginning
-                pass 
+                pass
 
             if status in [TaskStatus.RUNNING, TaskStatus.PENDING]:
                 CheckQueue.put(task)
-                time.sleep(
-                    10
-                ) 
+                time.sleep(10)
 
             elif status == TaskStatus.FAILED:
                 non_success_checked += 1

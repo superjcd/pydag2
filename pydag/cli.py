@@ -3,7 +3,7 @@ from plan import Plan
 from argparse import ArgumentParser
 from .utils import compose_command_for_job
 from .job import GoCronJob
-
+from .log import BasicJobLogger
 
 def submit(args):
     """
@@ -42,7 +42,13 @@ def delete(args):
     # delete associate logs
 
 
-# TODO: I may add a check method?
+def log(args):
+    bl = BasicJobLogger()
+   
+    bl.log_job(args.job_name, args.n)
+
+    
+
 
 
 class Submit:
@@ -76,6 +82,13 @@ class Log:
         log_parser = subparser.add_parser(
             "log", help="CLI tool to get `pydag` job & task logs"
         )
+        log_parser.add_argument(
+            "job_name",type=str, help="Job name"
+        )
+        log_parser.add_argument(
+            "-n", type=int, default=3, help="The number of recent job logs, default is `3`"
+        )
+        log_parser.set_defaults(func=log)
 
 
 class Delete:

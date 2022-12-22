@@ -1,4 +1,5 @@
 import os
+import time
 import logging
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -14,6 +15,7 @@ class TaskStatus(Enum):
     FAILED = "failed"
     SUCCESS = "success"
     PENDING = "pending"
+
 
 def draw_graph(g):
     options = {
@@ -144,3 +146,7 @@ def get_enviroment_set_command_by_platform(varible: str, value):
         return f"export {varible}={value}"
     else:
         raise PyDagException(f"Platform `{platform_name}` is not supported yet")
+
+
+def timestamp_to_datetime(job_run_at:str)->str:
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(job_run_at)))

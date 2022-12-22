@@ -1,10 +1,9 @@
-import os
 from pygocron.pygocron import RunStatus
-from .exceptions import PyGoCronException
 from .utils import compose_task_name, TaskStatus
 from .log import BasicJobLogger
 from .environments import TO_RUN_NEW
 from .exceptions import PyDagException
+
 
 class Task:
     def __init__(self, name: str, command: str):
@@ -77,7 +76,7 @@ class GoCronTask(Task):
         if task_id:
             self.task_id = task_id
         else:
-            raise PyGoCronException("Task submittion failed")
+            raise PyDagException("Task submittion failed")
 
     def run(self, task_manager):
         """
@@ -88,7 +87,7 @@ class GoCronTask(Task):
         if run_id:
             self.run_id = run_id
         else:
-            raise PyGoCronException("Task run failed")
+            raise PyDagException("Task run failed")
 
     def check_run_status(self, task_manager) -> str:
         """
@@ -108,7 +107,9 @@ class GoCronTask(Task):
             return TaskStatus.RUNNING
         elif status == RunStatus.PENDING:
             return TaskStatus.PENDING
-        raise PyGoCronException(f"Wrong status: {status}")
+        raise PyDagException(f"Wrong status: {status}")
 
-    def record(self, job_name, job_run_at, status:TaskStatus):
-        self._task_logger.record(job_name, job_run_at, self.name, self.run_id, self.task_id, status.value)
+    def record(self, job_name, job_run_at, status: TaskStatus, task_record_at):
+        self._task_logger.record_task_info(
+            job_name, job_run_at, self.name, self.run_id, self.task_id, status.value, task_record_at
+        )
