@@ -1,4 +1,3 @@
-import os
 from typing import List
 from abc import ABC, abstractclassmethod
 import networkx as nx

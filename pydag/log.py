@@ -65,7 +65,7 @@ class BasicJobLogger:
         if not job_meta:
             rprint(f"[red b]\[Pydag]There are no job named `{job_name}`")
             return             
-            
+
         job_graph = pickle.loads(job_meta)
 
         records = []
@@ -91,6 +91,12 @@ class BasicJobLogger:
         
 
     def log_task(self, latest_n=1):  # get log details from pygocron
+        ...
+
+    def clear_log(self, job_name):
+        pattern = ":".join([PREFIX, job_name])
+        task_keys = self._store.keys(pattern=pattern)
+
         ...
 
 

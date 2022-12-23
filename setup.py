@@ -10,7 +10,7 @@ with open("README.rst") as readme_file:
 with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
-requirements = ["pydot", "rich", "pygocron>=0.1.4"]
+requirements = ["pydot", "rich", "pygocron>=0.1.9", "pandas"]
 
 test_requirements = []
 
@@ -28,17 +28,17 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
-    description="simple python worflow builder",
+    description="lightweigt python workflow(pipeline) builder",
     install_requires=requirements,
     license="MIT license",
     long_description=readme + "\n\n" + history,
     include_package_data=True,
-    keywords="pydag",
-    name="pydag",
+    keywords="pydag2",
+    name="pydag2",
     packages=find_packages(include=["pydag", "pydag.*"]),
     test_suite="tests",
     tests_require=test_requirements,
-    url="https://github.com/superjcd/pydag",
-    version="0.1.0",
+    url="https://github.com/superjcd/pydag2",
+    version="0.1.1",
     zip_safe=False,
 )

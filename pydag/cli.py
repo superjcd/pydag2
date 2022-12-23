@@ -40,6 +40,8 @@ def delete(args):
     cron.run("clear")
 
     # delete associate logs
+    bl = BasicJobLogger()
+    # 
 
 
 def log(args):
