@@ -1,7 +1,6 @@
 from pydag.log import BasicJobLogger
 
 
-
 bl = BasicJobLogger()
 
 

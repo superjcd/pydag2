@@ -149,7 +149,7 @@ class GoCronJob(Job):
             self._job_logger.record_job_info(self.name, self._graph)
 
     def __repr__(self):
-        draw_graph(self._graph)
+        draw_graph(self._graph, self.name)
         return f"<{self.name} with {len(self._tasks)} tasks>"
 
     @staticmethod

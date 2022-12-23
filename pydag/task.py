@@ -111,5 +111,11 @@ class GoCronTask(Task):
 
     def record(self, job_name, job_run_at, status: TaskStatus, task_record_at):
         self._task_logger.record_task_info(
-            job_name, job_run_at, self.name, self.run_id, self.task_id, status.value, task_record_at
+            job_name,
+            job_run_at,
+            self.name,
+            self.run_id,
+            self.task_id,
+            status.value,
+            task_record_at,
         )

@@ -4,7 +4,7 @@
 
 from setuptools import setup, find_packages
 
-with open("README.rst") as readme_file:
+with open("README.md") as readme_file:
     readme = readme_file.read()
 
 with open("HISTORY.rst") as history_file:
@@ -29,9 +29,10 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     description="lightweigt python workflow(pipeline) builder",
+    entry_points={"console_scripts": ["pydag=pydag.cli:main",],},
     install_requires=requirements,
     license="MIT license",
-    long_description=readme + "\n\n" + history,
+    # long_description=readme + "\n\n" + history,
     include_package_data=True,
     keywords="pydag2",
     name="pydag2",

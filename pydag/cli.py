@@ -1,9 +1,12 @@
 from pygocron.pygocron import PyGoCron
 from plan import Plan
 from argparse import ArgumentParser
-from .utils import compose_command_for_job
+from .utils import compose_command_for_job, prepare_rich_logger
 from .job import GoCronJob
 from .log import BasicJobLogger
+
+logger = prepare_rich_logger("Pydag")
+
 
 def submit(args):
     """
@@ -41,16 +44,17 @@ def delete(args):
 
     # delete associate logs
     bl = BasicJobLogger()
-    # 
+    bl.clear_log(job_name)
 
 
 def log(args):
-    bl = BasicJobLogger() 
-    bl.log_job(args.job_name, args.n)
+    bl = BasicJobLogger()
 
-    # TODO: ADD lOG funcitonality for task
+    if args.task_name:
+        bl.log_task(args.job_name, args.task_name, args.n)
+    else:
+        bl.log_job(args.job_name, args.n)
 
-    
 
 class Submit:
     @staticmethod
@@ -83,11 +87,17 @@ class Log:
         log_parser = subparser.add_parser(
             "log", help="CLI tool to get `pydag` job & task logs"
         )
+        log_parser.add_argument("job_name", type=str, help="Job name")
         log_parser.add_argument(
-            "job_name",type=str, help="Job name"
+            "--task_name",
+            type=str,
+            help="Task name, optional; If it's given, then the log for specific task will be shown",
         )
         log_parser.add_argument(
-            "-n", type=int, default=3, help="The number of recent job logs, default is `3`"
+            "-n",
+            type=int,
+            default=3,
+            help="The number of recent job logs, default is `3`",
         )
         log_parser.set_defaults(func=log)
 

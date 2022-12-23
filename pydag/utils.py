@@ -17,7 +17,7 @@ class TaskStatus(Enum):
     PENDING = "pending"
 
 
-def draw_graph(g):
+def draw_graph(g, name):
     options = {
         "font_size": 10,
         "node_size": 2000,
@@ -28,10 +28,10 @@ def draw_graph(g):
         "with_labels": True,
         "alpha": 0.8,
     }
-    plt.figure(1, figsize=(12, 12))
+    plt.figure(1, figsize=(10, 10))
     pos = nx.nx_pydot.pydot_layout(g, prog="dot")
     nx.draw(g, pos, **options)
-    # plt.show()
+    plt.savefig(f"{name}.png")
 
 
 def prepare_rich_logger(name):
@@ -76,7 +76,7 @@ def compose_command(file: str) -> str:
             f"Wrong file name `{file}`, proper file name should have suffix, e.g, `.py`, `.ipynb`, etc"
         )
 
-    command_for_file = get_command_by_suffix(suffix)   
+    command_for_file = get_command_by_suffix(suffix)
 
     return command_for_file(file_abpath)
 
@@ -96,13 +96,13 @@ def compose_command_for_job(file, to_run_new: bool) -> str:
         )
 
 
-def get_command_by_suffix(suffix: str): # return a function, take file as its parameter
+def get_command_by_suffix(suffix: str):  # return a function, take file as its parameter
     if suffix == "py":
         command = os.environ.get("PYDAG_PYTHON_COMMAND", "")
         if command == "":
             return get_default_executable("python", True)
         return lambda file: command + " " + file
-    
+
     # Jupyter notebook is little bit different
     # command neet to be a function, take file as its parameter
     elif suffix == "ipynb":
@@ -114,6 +114,7 @@ def get_command_by_suffix(suffix: str): # return a function, take file as its pa
     else:
         raise PyDagException(f"File with subfix of `{suffix}` is not supported yet")
 
+
 def get_default_executable(command: str, add_sudo=False):
     platform_name = platform.system()
     if platform_name == "Windows":
@@ -122,7 +123,7 @@ def get_default_executable(command: str, add_sudo=False):
         executable = subprocess.check_output(["which", command]).decode("utf-8").strip()
     else:
         raise PyDagException(f"Platform `{platform_name}` is not supported yet")
-  
+
     if add_sudo:
         return "sudo" + " " + executable
     else:
@@ -136,7 +137,7 @@ def get_default_jupyternb_executable(command: str, add_sudo=False):
     elif platform_name == "Linux":
         executable = subprocess.check_output(["which", command]).decode("utf-8").strip()
     else:
-        raise PyDagException(f"Platform `{platform_name}` is not supported yet")   
+        raise PyDagException(f"Platform `{platform_name}` is not supported yet")
 
     executable_jn = executable + " nbconvert --execute --to notebook"
     if add_sudo:
@@ -155,5 +156,5 @@ def get_enviroment_set_command_by_platform(varible: str, value):
         raise PyDagException(f"Platform `{platform_name}` is not supported yet")
 
 
-def timestamp_to_datetime(job_run_at:str)->str:
-    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(job_run_at)))
+def timestamp_to_datetime(job_run_at: str) -> str:
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(job_run_at)))
