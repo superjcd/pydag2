@@ -1,11 +1,12 @@
 # Pydag
 
 ## What is pydag
-Before explainning what is `pydag`, let't me explain you what does a  `dag` means;`dag` stands for a  `Directed Acyclic Graph`, does that ring a bell with you?yes, the same `DAG` in `Airflow DAG`, but they are different. 
+Before explainning what is `pydag`, let't me explain you what does a  `dag` means;`dag` stands for a  `Directed Acyclic Graph`, does that ring a bell with you?Yes, the same `DAG` in `Airflow DAG`, but they are different. 
 pydag is way more slim, I mean lightweight comparing to `ariflow`, yet it can also build and manage complicated workflow or pipeline.   
-Pydag can not only handle sequential worflow(one task after another), but  can also handle a workflow(or a job) like this:
+Pydag can not only handle sequential worflow(one task after another), but  can also handle a workflow(or a job, i will use both words interchangeably) like this:
 
-![](resource/images/TestJob.png)
+<img src="resource/images/TestJob.png" alt="drawing" width="600"/>
+
 
 > The task `Feature Engineering1` and `Feature Engineering2` have to run 
 > in parallel, and Task `Machine Learning` has to wait until both of `Feature Engineering1` and `Feature Engineering2` finishing their jobs.
@@ -14,7 +15,7 @@ Pydag can not only handle sequential worflow(one task after another), but  can a
 Besides **running a workflow**, pydag also supoorts:
 - Schedule a workflow
 - Manage a worfllow, including Create or Deltete a workflow
-- Log a workflow, both at workflow level and task level(task belongs to the workflow)
+- Log a workflow, both at job level and task level(task belongs to the workflow)
 
 ## Install pydag
 You can just run the following command to install  pydag:
