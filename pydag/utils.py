@@ -76,9 +76,9 @@ def compose_command(file: str) -> str:
             f"Wrong file name `{file}`, proper file name should have suffix, e.g, `.py`, `.ipynb`, etc"
         )
 
-    command_for_file = get_command_by_suffix(suffix)
+    command_for_file = get_command_by_suffix(suffix)   
 
-    return command_for_file + " " + file_abpath
+    return command_for_file(file_abpath)
 
 
 def compose_command_for_job(file, to_run_new: bool) -> str:
@@ -96,19 +96,23 @@ def compose_command_for_job(file, to_run_new: bool) -> str:
         )
 
 
-def get_command_by_suffix(suffix: str):
+def get_command_by_suffix(suffix: str): # return a function, take file as its parameter
     if suffix == "py":
         command = os.environ.get("PYDAG_PYTHON_COMMAND", "")
         if command == "":
             return get_default_executable("python", True)
-        return command
-
+        return lambda file: command + " " + file
+    
+    # Jupyter notebook is little bit different
+    # command neet to be a function, take file as its parameter
     elif suffix == "ipynb":
         command = os.environ.get("PYDAG_JUPYTERNB_COMMAND", "")
         if command == "":
             return get_default_jupyternb_executable("jupyter", True)
-        return command
+        return lambda file: command + " " + file + " --stdout"
 
+    else:
+        raise PyDagException(f"File with subfix of `{suffix}` is not supported yet")
 
 def get_default_executable(command: str, add_sudo=False):
     platform_name = platform.system()
@@ -118,6 +122,7 @@ def get_default_executable(command: str, add_sudo=False):
         executable = subprocess.check_output(["which", command]).decode("utf-8").strip()
     else:
         raise PyDagException(f"Platform `{platform_name}` is not supported yet")
+  
     if add_sudo:
         return "sudo" + " " + executable
     else:
@@ -131,11 +136,13 @@ def get_default_jupyternb_executable(command: str, add_sudo=False):
     elif platform_name == "Linux":
         executable = subprocess.check_output(["which", command]).decode("utf-8").strip()
     else:
-        raise PyDagException(f"Platform `{platform_name}` is not supported yet")
+        raise PyDagException(f"Platform `{platform_name}` is not supported yet")   
+
+    executable_jn = executable + " nbconvert --execute --to notebook"
     if add_sudo:
-        return "sudo" + " " + executable + " " + "run"
+        return "sudo" + " " + executable_jn
     else:
-        return executable + " " + "run"
+        return executable_jn
 
 
 def get_enviroment_set_command_by_platform(varible: str, value):

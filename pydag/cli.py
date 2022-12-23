@@ -43,13 +43,12 @@ def delete(args):
 
 
 def log(args):
-    bl = BasicJobLogger()
-   
+    bl = BasicJobLogger() 
     bl.log_job(args.job_name, args.n)
 
+    # TODO: ADD lOG funcitonality for task
+
     
-
-
 
 class Submit:
     @staticmethod

@@ -16,7 +16,7 @@ test_requirements = []
 
 setup(
     author="Jiang Chaodi",
-    author_email="chaodi.jiang@fdsintl.com",
+    author_email="929760274@qq.com",
     python_requires=">=3.6",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
