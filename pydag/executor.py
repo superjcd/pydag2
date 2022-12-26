@@ -120,7 +120,7 @@ class CheckTaskExecutor(Thread):
                 continue
 
             elif status == TaskStatus.SUCCESS:
-                success_checked += 1  # the last one
+                success_checked += 1  
 
                 successors = self._job.get_successors(task.id)
 
