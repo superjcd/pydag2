@@ -121,7 +121,7 @@ class GoCronJob(Job):
 
         run_executor.join()
         check_executor.join()
-
+    
     def _check_job_not_exists_before(self):
         if TO_RUN_NEW == "yes":
             logger.info("Prepare to run a brand new job")

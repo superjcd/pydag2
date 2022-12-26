@@ -6,7 +6,7 @@ from pygocron.pygocron import PyGoCron
 tm = PyGoCron()
 
 
-job = GoCronJob(name="TestJob15", task_manager=tm)
+job = GoCronJob(name="TestJob", task_manager=tm)
 
 task1 = GoCronTask(name="Sync Data", command="echo syncdata")
 
@@ -31,6 +31,5 @@ task4.set_downstream(task5)
 job.add_task(task1, task2, task3, task4, task5)
 
 
-# print(job)
-
+print(job)
 job.run()

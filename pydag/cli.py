@@ -13,9 +13,12 @@ def submit(args):
     plan job run by cron via `plan`
     """
     file = args.file
-    job_name = (
-        args.name if args.name else f"Pydag:Run {file}"
-    )  # why not use the job name defined in file ?
+    job_name = args.name
+
+    if not job_name:
+        raise ValueError(
+            "No `job` name provided, please define one via `--name=[job name]` flag"
+        )
 
     command = compose_command_for_job(
         file, to_run_new=False
@@ -25,7 +28,7 @@ def submit(args):
     cron_expression = args.cron
     if not cron_expression:
         raise ValueError(
-            "No cron expresion, please define one via `pydag summbit --cron [cron expression]`"
+            "No cron expresion provides, please define one via `--cron=[cron expression]` flag"
         )
     cron.command(command, every=cron_expression)
     cron.run("update")
@@ -49,11 +52,16 @@ def delete(args):
 
 def log(args):
     bl = BasicJobLogger()
+    
+
+    style = args.style
 
     if args.task_name:
         bl.log_task(args.job_name, args.task_name, args.n)
     else:
-        bl.log_job(args.job_name, args.n)
+        bl.log_job(args.job_name, args.n, style)
+
+    
 
 
 class Submit:
@@ -98,6 +106,13 @@ class Log:
             type=int,
             default=3,
             help="The number of recent job logs, default is `3`",
+        )
+        log_parser.add_argument(
+            "--style",
+            type=str,
+            default="flat",
+            choices=["flat", "tree"],
+            help="Print the log in `tree` format or `flat` format"
         )
         log_parser.set_defaults(func=log)
 

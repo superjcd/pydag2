@@ -38,7 +38,7 @@ class RunTaskExecutor(Thread):
             if task is None:
                 break
 
-            logger.debug(f"Task name: {task.name}, task_id: {task.task_id}")
+            # logger.debug(f"Task name: {task.name}, task_id: {task.task_id}")
             predecessors = self._job.get_predecessors(task.id)
             task_predecessors_success_num = 0
 

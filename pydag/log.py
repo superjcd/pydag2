@@ -58,7 +58,7 @@ class BasicJobLogger:
         )
         self._store.set(record.compose_key(), record.compose_value())
 
-    def log_job(self, job_name, latest_n=3):
+    def log_job(self, job_name, latest_n=3, style="tree"):
         pattern = ":".join([PREFIX, job_name]) + ":[1-9]*"  # skip meta
         task_keys = self._store.keys(pattern=pattern)
         job_meta = self._store.get(":".join([PREFIX, job_name, "META"]))
@@ -100,7 +100,7 @@ class BasicJobLogger:
         print_a_log_title(f"Log For Job `{job_name}`")
         for n, (job_run_at, df) in enumerate(log_groups):
             task_records = df.to_dict(orient="records")
-            display_job_run(job_name, job_run_at, task_records, job_graph)
+            display_job_run(job_name, job_run_at, task_records, job_graph, method=style)
             if n != len(log_groups) - 1:
                 print_a_log_sep()
         print_a_log_end()
@@ -142,7 +142,7 @@ class BasicJobLogger:
         delete_keys(task_keys)
 
 
-def display_job_run(job_name, job_run_at, tasks, job_graph, method="dependant"):
+def display_job_run(job_name, job_run_at, tasks, job_graph, method="flat"):
     job_run_at = timestamp_to_datetime(job_run_at)
     tree = Tree(f"`{job_name}` at {job_run_at}")
 
@@ -154,7 +154,7 @@ def display_job_run(job_name, job_run_at, tasks, job_graph, method="dependant"):
 
 
 def build_log_tree(tree, job_graph, root_task_name, tasks, method):
-    if method == "dependant":
+    if method == "tree":
         build_dependant_log_tree(tree, job_graph, root_task_name, tasks)
     else:
         build_flatten_log_tree(tree, tasks)
