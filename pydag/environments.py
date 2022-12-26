@@ -1,7 +1,7 @@
 import os
 from .exceptions import PyDagException
 
-### Log Store
+# Log Store
 HOST = os.environ.get("PYDAG_LOG_STORE_HOST", "")
 PASSWORD = os.environ.get("PYDAG_LOG_STORE_PASSWORD", "")
 
@@ -11,4 +11,12 @@ if HOST == "" or PASSWORD == "":
                         `PYDAG_LOG_STORE_HOST` is a redis connection host and `PYDAG_LOG_STORE_PASSWORD`is a redis connection password"""
     )
 
+# Other Settings
 TO_RUN_NEW = os.environ.get("PYDAG_RUN_NEW", "yes").lower().strip()
+TASK_TIMEOUT = int(os.environ.get("PYDAG_TASK_TIMEOUT", 3600))
+
+ADD_SUDO = str(os.environ.get("PYDAG_ADD_SUDO"), "yes") 
+ADD_SUDO_BOOL = True
+
+if ADD_SUDO.lower() != "yes":
+    ADD_SUDO_BOOL = False

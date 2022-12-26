@@ -1,7 +1,7 @@
 from pygocron.pygocron import RunStatus
 from .utils import compose_task_name, TaskStatus
 from .log import BasicJobLogger
-from .environments import TO_RUN_NEW
+from .environments import TO_RUN_NEW, TASK_TIMEOUT
 from .exceptions import PyDagException
 
 
@@ -64,7 +64,12 @@ class GoCronTask(Task):
         # check if is to run a brand new job or existing job
         if TO_RUN_NEW == "yes":
             task_id = task_manager.create_task(
-                name=task_name, spec=None, tag=tag, command=self.command, level=2
+                name=task_name,
+                spec=None,
+                tag=tag,
+                command=self.command,
+                level=2,
+                timeout=TASK_TIMEOUT,
             )
         elif TO_RUN_NEW == "no":
             task_id = task_manager.get_task_id_by_name(task_name)

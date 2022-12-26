@@ -79,7 +79,7 @@ class Job:
         for task in self._tasks:
             if task.id in successors:
                 tasks.append(task)
-        return tasks # 
+        return tasks  #
 
     def get_descendant_counts(self, id):
         descendant = nx.descendants(self._graph, id)

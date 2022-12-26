@@ -5,10 +5,11 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import platform
 import subprocess
+from typing import Dict, Callable
 from enum import Enum
 from rich.logging import RichHandler
 from .exceptions import PyDagException
-
+from .environments import ADD_SUDO_BOOL
 
 class TaskStatus(Enum):
     RUNNING = "running"
@@ -63,7 +64,7 @@ def compose_task_name(job_name: str, task_name: str) -> str:
     return name
 
 
-def compose_command(file: str) -> str:
+def compose_command(file: str, default_command_map={}) -> str:
     file_abpath = os.path.join(os.path.abspath(os.path.curdir), file)
 
     if not os.path.exists(file_abpath):
@@ -75,11 +76,19 @@ def compose_command(file: str) -> str:
         raise PyDagException(
             f"Wrong file name `{file}`, proper file name should have suffix, e.g, `.py`, `.ipynb`, etc"
         )
+    
+    if default_command_map != {}:
+        try:
+            command_for_file = default_command_map[suffix]
+        except KeyError:
+            raise PyDagException(f"No command for file type:`{suffix}` if found")
+    else:
+        command_for_file = get_command_by_suffix(suffix)
 
-    command_for_file = get_command_by_suffix(suffix)
-
-    return command_for_file(file_abpath)
-
+    if callable(command_for_file):
+        return command_for_file(file_abpath)
+    else:
+        raise PyDagException(f"Command for file type:`{suffix}` is not callable, command must be callable with one argument `file`")
 
 def compose_command_for_job(file, to_run_new: bool) -> str:
     if to_run_new:
@@ -100,7 +109,7 @@ def get_command_by_suffix(suffix: str):  # return a function, take file as its p
     if suffix == "py":
         command = os.environ.get("PYDAG_PYTHON_COMMAND", "")
         if command == "":
-            return get_default_executable("python", True)
+            command =  get_default_executable("python", add_sudo=ADD_SUDO_BOOL)  
         return lambda file: command + " " + file
 
     # Jupyter notebook is little bit different
@@ -108,7 +117,7 @@ def get_command_by_suffix(suffix: str):  # return a function, take file as its p
     elif suffix == "ipynb":
         command = os.environ.get("PYDAG_JUPYTERNB_COMMAND", "")
         if command == "":
-            return get_default_jupyternb_executable("jupyter", True)
+            command =  get_default_jupyternb_executable("jupyter", False)
         return lambda file: command + " " + file + " --stdout"
 
     else:
@@ -119,6 +128,7 @@ def get_default_executable(command: str, add_sudo=False):
     platform_name = platform.system()
     if platform_name == "Windows":
         executable = subprocess.check_output(["where", command]).decode("utf-8").strip()
+        print(executable)
     elif platform_name == "Linux":
         executable = subprocess.check_output(["which", command]).decode("utf-8").strip()
     else:

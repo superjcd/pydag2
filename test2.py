@@ -1,20 +1,23 @@
 from pydag.task import GoCronTask
 from pydag.job import GoCronJob
 from pygocron.pygocron import PyGoCron
+from pydag.helper import compose_command_for_file
 
 tm = PyGoCron()
 
-job = GoCronJob(name="TestJob", task_manager=tm)
+fn = compose_command_for_file
 
-task1 = GoCronTask(name="Sync Data", command="sleep 1")
+job = GoCronJob(name="TestJob15", task_manager=tm)
 
-task2 = GoCronTask(name="Feature Engineering1", command="sleep 1")
+task1 = GoCronTask(name="Sync Data", command=fn("examples/1/syncdata.py"))
 
-task3 = GoCronTask(name="Feature Engineering2", command="sleep 1")
+task2 = GoCronTask(name="Feature Engineering1", command=fn("examples/1/fe1.py"))
 
-task4 = GoCronTask(name="Machine Learning", command="sleep 1")
+task3 = GoCronTask(name="Feature Engineering2", command=fn("examples/1/fe2.py"))
 
-task5 = GoCronTask(name="Send Email", command="sleep 1")
+task4 = GoCronTask(name="Machine Learning", command="examples/1/machinelearning.py")
+
+task5 = GoCronTask(name="Send Email", command="examples/1/sendemail.py")
 
 task1.set_downstream(task2)
 
