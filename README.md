@@ -219,8 +219,26 @@ In [build a workflow](#build-a-workflow) section, we define several enviroments,
 ## Case study
 
 ### Run a remote task
+The previous example, we render our tasks to the default node(the server you deploy your gocron master node at), but some sophisticated case require a remote task run, which task will be rendered to and ran at that remote server.  
+To Achive that, you have to first deploy a `gocron-node` at that remote server(same process as you deploy `gocron`, but this time you don't need the `gocron` file, just use `gocron-node-*` and deploy it, check [here](https://github.com/superjcd/pygocron#Prerequisite) if u forgot), and make sure you expose(open) the node port too(default is `5921`).  
+Then you have to let your `gocron` know you added that node, you can either go to the `gocron` admin page or use `pygocron` to set for you:
+```pyhton
+pgc = PyGoCron()
 
+pgc.check_add(ip="your node ip", port="your node port", alias="name for the node", remark="some comment")
+```
 
+If no errors occurs, your can then run `pgc.get_nodes()` to check if that node is added or not, then you can run the following command to check your node is accessable or not:
 
+```python
+pgc = PyGoCron()
 
+pgc.check_node(node_id=2)   # you can get this by the get_nodes method 
+```
+If things went well, we could specify a `node_id` for task definition:
+
+```python
+task1 = GoCronTask(name="Sync Data", command="echo syncdata", node_id=2)
+```
+Then the task `Sync Data` with `echo syncdata` command will run at remote node with a node id `2`  
 Good luck, have fun.
