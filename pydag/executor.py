@@ -2,6 +2,7 @@ import time
 from threading import Thread, Lock
 from queue import Queue
 from .utils import prepare_rich_logger, TaskStatus
+from .environments import QueueBlockTime
 import time
 
 logger = prepare_rich_logger("Executor")
@@ -9,7 +10,6 @@ logger = prepare_rich_logger("Executor")
 
 RunQueue = Queue()
 CheckQueue = Queue()
-QueueBlockTime = 10
 
 # Ajust task counts if needed
 lock = Lock()
@@ -26,7 +26,6 @@ class RunTaskExecutor(Thread):
         global ToAjustTaskCount, AjustTaskCount
         while True:
             logger.info("New run round begains")
-            time.sleep(2)
             try:
                 task = RunQueue.get(
                     block=True, timeout=QueueBlockTime
@@ -109,7 +108,7 @@ class CheckTaskExecutor(Thread):
 
             if status in [TaskStatus.RUNNING, TaskStatus.PENDING]:
                 CheckQueue.put(task)
-                time.sleep(10)
+                time.sleep(QueueBlockTime)
 
             elif status == TaskStatus.FAILED:
                 non_success_checked += 1

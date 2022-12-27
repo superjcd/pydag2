@@ -1,7 +1,7 @@
 from pygocron.pygocron import PyGoCron
 from plan import Plan
 from argparse import ArgumentParser
-from .utils import compose_command_for_job, prepare_rich_logger
+from .utils import compose_command_for_job, prepare_rich_logger, list_pipelines
 from .job import GoCronJob
 from .log import BasicJobLogger
 
@@ -62,7 +62,9 @@ def log(args):
         bl.log_job(args.job_name, args.n, style)
 
     
-
+def list(args):
+    job_name = args.job_name
+    _ = list_pipelines(job_name)
 
 class Submit:
     @staticmethod
@@ -130,15 +132,26 @@ class Delete:
         )
         delete_parser.set_defaults(func=delete)
 
+class List:
+    @staticmethod
+    def register_subcommand(subparser):
+        list_parser = subparser.add_parser(
+            "list", help="CLI tool to list all the `pydag` job"
+        )
+        list_parser.add_argument(
+            "--job_name",
+            type=str,
+            help="Job name, all tasks associate with the job name then will be list",
+        )
+        list_parser.set_defaults(func=list)
 
 def main():
     parser = ArgumentParser()
-
     subparser = parser.add_subparsers()
-
     Submit.register_subcommand(subparser)
     Log.register_subcommand(subparser)
     Delete.register_subcommand(subparser)
+    List.register_subcommand(subparser)
 
     args = parser.parse_args()
     if not hasattr(args, "func"):

@@ -104,23 +104,17 @@ class GoCronJob(Job):
         super().__init__(name, task_manager)
         self._check_job_not_exists_before()
 
-    def run(self):
+    def run(self, mode):
+        try:
+            assert mode in ["submit", "execute"]
+        except AssertionError:
+            raise PyDagException(f"Wrong mode: `{mode}`, should be one of [submit, execute]")
+        logger.info(f"Start to run in `{mode}` mode")
         self._submit_tasks()
-
-        logger.info(f"Job `{self.id}` trggered")
-        root_task = self.get_root_task()
-
-        RunQueue.put(root_task)
-        CheckQueue.put(root_task)
-
-        run_executor = RunTaskExecutor(job=self)
-        check_executor = CheckTaskExecutor(job=self, root_task_id=root_task.id)
-
-        run_executor.start()
-        check_executor.start()
-
-        run_executor.join()
-        check_executor.join()
+        logger.info("All tasks have been submitted")
+        
+        if mode == "execute":
+            self._run()
     
     def _check_job_not_exists_before(self):
         if TO_RUN_NEW == "yes":
@@ -151,6 +145,22 @@ class GoCronJob(Job):
             )
         if log_job_meta:
             self._job_logger.record_job_info(self.name, self._graph)
+
+    def _run(self,):
+        logger.info(f"Job `{self.id}` trggered")
+        root_task = self.get_root_task()
+
+        RunQueue.put(root_task)
+        CheckQueue.put(root_task)
+
+        run_executor = RunTaskExecutor(job=self)
+        check_executor = CheckTaskExecutor(job=self, root_task_id=root_task.id)
+
+        run_executor.start()
+        check_executor.start()
+
+        run_executor.join()
+        check_executor.join()
 
     def __repr__(self):
         draw_graph(self._graph, self.name)

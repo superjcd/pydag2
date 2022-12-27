@@ -1,12 +1,10 @@
 from pydag.task import GoCronTask
 from pydag.job import GoCronJob
 from pygocron.pygocron import PyGoCron
-# from pydag.helper import compose_command_for_file
 
 tm = PyGoCron()
 
-
-job = GoCronJob(name="TestJob", task_manager=tm)
+job = GoCronJob(name="TestJob4", task_manager=tm)
 
 task1 = GoCronTask(name="Sync Data", command="echo syncdata")
 
@@ -32,4 +30,5 @@ job.add_task(task1, task2, task3, task4, task5)
 
 
 print(job)
+
 job.run()

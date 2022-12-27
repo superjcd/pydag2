@@ -6,10 +6,9 @@ import pandas as pd
 from dataclasses import dataclass
 from networkx import DiGraph
 from pygocron.pygocron import PyGoCron
-from .environments import HOST, PASSWORD
+from .environments import HOST, PASSWORD, PREFIX
 from .utils import timestamp_to_datetime
 
-PREFIX = "Pydag"
 
 
 @dataclass
@@ -79,6 +78,7 @@ class BasicJobLogger:
         if record_df.empty:
             rprint(f"[red b]\[Pydag]No logs for job `{job_name}`")
             return
+            
         record_df = pd.DataFrame(records).loc[:, 1:]
         record_df.columns = [
             "job_name",

@@ -5,11 +5,13 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import platform
 import subprocess
-from typing import Dict, Callable
+import redis 
+import pickle
 from enum import Enum
+from rich import print as rprint
 from rich.logging import RichHandler
 from .exceptions import PyDagException
-from .environments import ADD_SUDO_BOOL
+from .environments import ADD_SUDO_BOOL, HOST, PASSWORD, PREFIX
 
 class TaskStatus(Enum):
     RUNNING = "running"
@@ -168,3 +170,29 @@ def get_enviroment_set_command_by_platform(varible: str, value):
 
 def timestamp_to_datetime(job_run_at: str) -> str:
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(job_run_at)))
+
+
+def list_pipelines(job_name=None):
+    _store = redis.Redis(host=HOST, password=PASSWORD, db=3)
+    if job_name == None:
+        pattern = PREFIX + "*META"  # skip meta
+        job_keys = _store.keys(pattern=pattern)
+
+        jobs = []
+
+        for job_key in job_keys:
+            name = job_key.decode().split(":")[1]
+            jobs.append(name)
+        print("\n".join(jobs))
+        return jobs 
+    else:
+        job_meta = _store.get(":".join([PREFIX, job_name, "META"]))
+
+        if not job_meta:
+            rprint(f"[red b]\[Pydag]There are no job named `{job_name}`")
+            return
+
+        job_graph = pickle.loads(job_meta)
+        tasks = job_graph.nodes
+        print("\n".join(tasks))
+        return tasks

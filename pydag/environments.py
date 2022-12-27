@@ -1,6 +1,11 @@
 import os
 from .exceptions import PyDagException
 
+# Meta 
+PREFIX = os.environ.get("PYDAG_LOG_PREFIX", "Pydag")
+QueueBlockTime = os.environ.get("PYDAG_ROUNDS_TIME", "10")
+QueueBlockTime = int(QueueBlockTime)
+
 # Log Store
 HOST = os.environ.get("PYDAG_LOG_STORE_HOST", "")
 PASSWORD = os.environ.get("PYDAG_LOG_STORE_PASSWORD", "")

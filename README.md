@@ -68,11 +68,11 @@ job = GoCronJob(name="TestJob", task_manager=tm)
 
 
 # step2: define tasks
-task1 = GoCronTask(name="Sync Data", command="sleep 1") 
-task2 = GoCronTask(name="Feature Engineering1", command="sleep 1")
-task3 = GoCronTask(name="Feature Engineering2", command="sleep 1") 
-task4 = GoCronTask(name="Machine Learning", command="sleep 1")
-task5 = GoCronTask(name="Send Email", command="sleep 1")
+task1 = GoCronTask(name="Sync Data", command="echo syncdata")
+task2 = GoCronTask(name="Feature Engineering1", command="echo featureengineering1")
+task3 = GoCronTask(name="Feature Engineering2", command="echo featureengineering1")
+task4 = GoCronTask(name="Machine Learning", command="echo machinelearning")
+task5 = GoCronTask(name="Send Email", command="echo sendemail")
 
 # step 3: define relationships between tasks
 task1.set_downstream(task2)
@@ -84,7 +84,7 @@ task4.set_downstream(task5)
 # step 4: 
 job.add_task(task1, task2, task3, task4, task5)  
 print(job)
-job.run()
+job.run(mode="execute")
 
 ```
 Let's break down the syntex step by step: 
@@ -98,12 +98,21 @@ To run this workflow, say `example.py`, you can just run:
 ```shell
 python example.py
 ```
+Codes above will submit and run the workflow.If you want just submit the tasks without accually running  them, you can change `mode` argument to `submit` mode, like:
+```python
+ job.run(mode="submit")
+```
+> Behind the scene, pydag render all the tasks to the `gocron`, and it will keep tracking the running status for each tasks, when all task is done(no matter sucessed or not), the workflow will terminated too. 
 
-> Behind the scene, pydag render all the tasks to the `gocron`(via `submit`), and keep tracking the running status for each tasks, when all task is done(no matter sucessed or not), the workflow will terminated too. 
-
+If you run the above `example.py` the second time with `execute` mode, the terminal will throw you an error, to aviod this, just set following varible(linux):
+```shell
+export PYDAG_RUN_NEW=no
+```
+And try it again, things will work well this time, for more details about
+`PYDAG_RUN_NEW`, see [The envrionment varibles](#the-envrionment-varibles) section below
 
 ## The pydag cli tool
-`pydag` also offers a cli tool to manage our jobs
+`pydag` also offers a cli tool to manage our jobs too
 
 ### Submit
 To submit a pipeline, you can use the `submit` sub command:
@@ -116,8 +125,37 @@ pydag submit example.py --cron="0 0 * * *" --name="TestJob"
 
 Behind the scene, this command will run you job(here `example.py`) by rendering it to the cron table, which means you have to ran on a crontab-supported paltform 
 
+> Note to run a pipleine, you have to first make your pipeline `executable` by setting the run mode to `execute`, otherwise the cron job will just submit all your tasks again and agian without actually running them 
+
+### List 
+The `list` command will list all the validated pipeline to the terminal:
+
+```shell
+pydag list
+```
+Output interminal looks like:
+```shell
+TestJob4
+TestJob3
+TestJob2
+TestJob
+```
+Also, if you want list tasks of one pipeline, you can then run the following command:
+```shell
+pydag list --job_name="TestJob"
+```
+Output：
+
+```shell
+Sync Data
+Feature Engineering1
+Feature Engineering2
+Machine Learning
+Send Email
+```
+
 ### Delete
-To delete a job, just by running the following command:
+To delete a pipeline, just by running the following command:
 
 ```shell
 pydag delete TestJob
@@ -128,11 +166,11 @@ That is it
 pydag support both `job` level log and `task` level log.
 
 #### Get job level logs
-To get recent loggings for job `TestJob` by run:
+To get recent loggings for a job, you can run:
 ```shell 
 pydag log TestJob
 ```
-Then the terminal shold give you:
+Then the terminal will show you:
 
 <img src="resource/images/JobLogFlat.png" alt="drawing" width="500"/>
 
@@ -142,7 +180,7 @@ Note the color also shows the status of the task:
 - `blue` for runninng
 - `yellow` for pendding
 
-The above log doesn't show the dependency between tasks, if you want to, you can specify a `style` flag
+The above log  doesn't show the dependency between tasks, if you want to, you can specify a `style` flag
 ```shell
 pydag log TestJob --style=tree
 ```
@@ -153,10 +191,36 @@ Then the log will shown as a `tree` style:
 
 Finally you can define how many recent logs do you want to show by add a `-n` flag(default is 3)
 
+```shell 
+pydag log TestJob --style=tree -n=5
+```
+
 #### Get task level logs
+Getting task level log is similar, the only you need to do is just put a `--task_name` flag:
+
+```shell
+pydag log TestJob --task_name="Sync Data" -n=1
+```
+Again the `n` flag will limit the number of logs to be shown
 
 ## The envrionment varibles
+In [build a workflow](#build-a-workflow) section, we define several enviroments, here are full list of enviroments varible you can set:
 
+| Varible   |      Description      |  Default |
+|----------|:-------------:|------:|
+| PYDAG_LOG_PREFIX |  Prfix for the redis key for the log store | Pydag |
+| PYDAG_ROUNDS_TIME |  The pydag  will check the `status` of a task after every  `PYDAG_ROUNDS_TIME`  |   10(second) |
+| PYDAG_LOG_STORE_HOST| Redis host for log store |    (empty, must be set) |
+|PYDAG_LOG_STORE_PASSWORD| Redis password |    (empty, must be set) |
+|PYDAG_RUN_NEW| To run a new pipeline or existing one,  set to `yes` will always submit and run a new pipeline, `no` will run an existing one |    yes |
+|PYDAG_TASK_TIMEOUT|Nobody want their tasks run forever, fortunately you can set this varible to terminate the task after the given timeout , unit is second| 3600|
+|PYDAG_ADD_SUDO|This is mainly for `pydag` cli command, in some case you may need add the `sudo` prefix to run a your `pydag` command, then you can set it to "yes" | no
 
 ## Case study
+
+### Run a remote task
+
+
+
+
 Good luck, have fun.
