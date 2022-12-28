@@ -71,7 +71,7 @@ class Submit:
     def register_subcommand(subparser):
         submit_parser = subparser.add_parser(
             "submit",
-            help="CLI tool to submit a `pydag` job;Before run you have to make sure you had submitted the job before",
+            help="CLI tool to submit a `pydag` job;Before running this command, you have to make sure you had submitted the job before",
         )
         submit_parser.add_argument(
             "file",
@@ -136,7 +136,7 @@ class List:
     @staticmethod
     def register_subcommand(subparser):
         list_parser = subparser.add_parser(
-            "list", help="CLI tool to list all the `pydag` job"
+            "list", help="CLI tool to list all the `pydag` job and tasks"
         )
         list_parser.add_argument(
             "--job_name",
