@@ -97,13 +97,13 @@ class BasicJobLogger:
         log_groups = record_df.groupby("job_run_at")
         log_groups = sorted(log_groups, reverse=True)
 
-        print_a_log_title(f"Log For Job `{job_name}`")
+        print_log_title(f"Log For Job `{job_name}`")
         for n, (job_run_at, df) in enumerate(log_groups):
             task_records = df.to_dict(orient="records")
             display_job_run(job_name, job_run_at, task_records, job_graph, method=style)
             if n != len(log_groups) - 1:
-                print_a_log_sep()
-        print_a_log_end()
+                print_log_sep()
+        print_log_end()
 
     def log_task(self, job_name, task_name, latest_n=1):
         pyg = PyGoCron()
@@ -114,7 +114,7 @@ class BasicJobLogger:
             return
         task_log = pyg.get_task_logs(task_id=task_id, page_size=latest_n)
         total = task_log["total"]
-        print_a_log_title(f"Log For Task `{task_name}`")
+        print_log_title(f"Log For Task `{task_name}`")
         if total >= 1:
             logs = task_log["data"]
             for n, log in enumerate(logs):
@@ -123,8 +123,8 @@ class BasicJobLogger:
                 )
                 print(log["result"].strip())
                 if n != len(logs) - 1:
-                    print_a_log_sep()
-        print_a_log_end()
+                    print_log_sep()
+        print_log_end()
 
     def clear_log(self, job_name):
         """
@@ -146,16 +146,17 @@ def display_job_run(job_name, job_run_at, tasks, job_graph, method="flat"):
     job_run_at = timestamp_to_datetime(job_run_at)
     tree = Tree(f"`{job_name}` at {job_run_at}")
 
-    root_task_name = [n for n, d in job_graph.in_degree() if d == 0][0]
+    root_task_names = [n for n, d in job_graph.in_degree() if d == 0]
 
-    build_log_tree(tree, job_graph, root_task_name, tasks, method)
+    build_log_tree(tree, job_graph, root_task_names, tasks, method)
 
     rprint(tree)
 
 
-def build_log_tree(tree, job_graph, root_task_name, tasks, method):
+def build_log_tree(tree, job_graph, root_task_names, tasks, method):
     if method == "tree":
-        build_dependant_log_tree(tree, job_graph, root_task_name, tasks)
+        for root_task_name in root_task_names:
+            build_dependant_log_tree(tree, job_graph, root_task_name, tasks)
     else:
         build_flatten_log_tree(tree, tasks)
 
@@ -164,7 +165,7 @@ def build_dependant_log_tree(tree, graph, root, tasks):
     try:
         task_info = [task for task in tasks if task["task_name"] == root][
             0
-        ]  # get self task details
+        ]
     except IndexError:
         return
     status = task_info["status"]
@@ -199,13 +200,13 @@ def pick_color_for_status(status: str):
     return "black"
 
 
-def print_a_log_title(title):
+def print_log_title(title):
     rprint("[blue b]" + ">> " * 5 + title + "<< " * 5)
 
 
-def print_a_log_sep():
+def print_log_sep():
     rprint("[blue b]" + "== " * 20)
 
 
-def print_a_log_end():
+def print_log_end():
     rprint("[blue b]" + ">> " * 20)

@@ -29,7 +29,7 @@ class TaskManger(ABC):
 class Job:
     def __init__(self, name: str, task_manager: TaskManger) -> None:
         self.id = self.name = name
-        self.root_task = None
+        self.root_tasks = None
         self._tasks: List[Task] = []
         self._graph = nx.DiGraph()
         self._task_manager = task_manager
@@ -60,7 +60,8 @@ class Job:
                 f"""Can not build a directed acyclic graph for job:`{self.name}`, 
                                    please ensure there's no loop among your tasks"""
             )
-        self.root_task = self.get_root_task()
+
+        self.root_tasks = self.get_root_tasks()
 
     def get_task_by_id(self, id):
         for task in self._tasks:
@@ -68,9 +69,13 @@ class Job:
                 return task
         raise ValueError(f"Cannnot find a task given the id: {id}")
 
-    def get_root_task(self,):
-        root_id = [n for n, d in self._graph.in_degree() if d == 0][0]
-        return self.get_task_by_id(root_id)
+    def get_root_tasks(self,):
+        root_ids = [n for n, d in self._graph.in_degree() if d == 0]    # [0]
+        
+        task = []
+        for root_id in root_ids:
+            task.append(self.get_task_by_id(root_id))
+        return task
 
     def get_successors(self, id):
         successors = list(self._graph.successors(id))
@@ -148,13 +153,14 @@ class GoCronJob(Job):
 
     def _run(self,):
         logger.info(f"Job `{self.id}` trggered")
-        root_task = self.get_root_task()
-
-        RunQueue.put(root_task)
-        CheckQueue.put(root_task)
+        root_tasks = self.get_root_tasks()
+        
+        for task in root_tasks:
+            RunQueue.put(task)
+            CheckQueue.put(task)
 
         run_executor = RunTaskExecutor(job=self)
-        check_executor = CheckTaskExecutor(job=self, root_task_id=root_task.id)
+        check_executor = CheckTaskExecutor(job=self, root_task_ids=[task.id for task in root_tasks])
 
         run_executor.start()
         check_executor.start()

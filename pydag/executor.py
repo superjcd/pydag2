@@ -46,7 +46,8 @@ class RunTaskExecutor(Thread):
                 status = predecessor.check_run_status(self._job._task_manager)
                 if status == TaskStatus.SUCCESS:
                     task_predecessors_success_num += 1
-
+            
+            # print(50, task.id, len(predecessors), task_predecessors_success_num)
             if len(predecessors) == task_predecessors_success_num:
                 try:
                     task.run(self._job._task_manager)  # mark failed
@@ -60,15 +61,17 @@ class RunTaskExecutor(Thread):
                     continue
             else:
                 RunQueue.put(task)
+                time.sleep(QueueBlockTime)
 
 
 class CheckTaskExecutor(Thread):
-    def __init__(self, job, root_task_id):
+    def __init__(self, job, root_task_ids):
         Thread.__init__(self)
         self._job = job
         self._total_task_counts = len(job._tasks)  # UPDATE
         self._seen_tasks = set()
-        self._seen_tasks.add(root_task_id)
+        for task_id in root_task_ids:
+            self._seen_tasks.add(task_id)
         self._job_start_at = int(time.time())
 
     def run(self) -> None:
@@ -78,7 +81,7 @@ class CheckTaskExecutor(Thread):
 
         while True:
             logger.info("New check round begains")
-            # print(success_checked + non_success_checked,  self._total_task_counts)
+            # print(82, success_checked + non_success_checked,  self._total_task_counts)
 
             if (success_checked + non_success_checked) == self._total_task_counts:
                 logger.info(f"All tasks of {self._job.name} finished")
