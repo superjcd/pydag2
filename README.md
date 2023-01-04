@@ -214,7 +214,6 @@ In [build a workflow](#build-a-workflow) section, we define several enviroments,
 |PYDAG_LOG_STORE_PASSWORD| Redis password |    (empty, must be set) |
 |PYDAG_RUN_NEW| To run a new pipeline or existing one,  set to `yes` will always submit and run a new pipeline, `no` will run an existing one |    yes |
 |PYDAG_TASK_TIMEOUT|Nobody want their tasks run forever, fortunately you can set this varible to terminate the task after the given timeout , unit is second| 3600|
-|PYDAG_ADD_SUDO|This is mainly for `pydag` cli command, in some case you may need add the `sudo` prefix to run a your `pydag` command, then you can set it to "yes" | no
 
 ## Case study
 
