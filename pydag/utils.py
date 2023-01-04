@@ -66,7 +66,7 @@ def compose_task_name(job_name: str, task_name: str) -> str:
     return name
 
 
-def compose_command(file: str, default_command_map={}) -> str:
+def compose_command(file: str, default_command_map={}, add_sudo=True) -> str:
     file_abpath = os.path.join(os.path.abspath(os.path.curdir), file)
 
     if not os.path.exists(file_abpath):
@@ -85,33 +85,33 @@ def compose_command(file: str, default_command_map={}) -> str:
         except KeyError:
             raise PyDagException(f"No command for file type:`{suffix}` if found")
     else:
-        command_for_file = get_command_by_suffix(suffix)
+        command_for_file = get_command_by_suffix(suffix, add_sudo)
 
     if callable(command_for_file):
         return command_for_file(file_abpath)
     else:
         raise PyDagException(f"Command for file type:`{suffix}` is not callable, command must be callable with one argument `file`")
 
-def compose_command_for_job(file, to_run_new: bool) -> str:
+def compose_command_for_job(file, to_run_new: bool, add_sudo:bool) -> str:
     if to_run_new:
         return (
             get_enviroment_set_command_by_platform("PYDAG_RUN_NEW", "yes")
             + " && "
-            + compose_command(file)
+            + compose_command(file, add_sudo=add_sudo)
         )
     else:
         return (
             get_enviroment_set_command_by_platform("PYDAG_RUN_NEW", "no")
             + " && "
-            + compose_command(file)
+            + compose_command(file, add_sudo=add_sudo)
         )
 
 
-def get_command_by_suffix(suffix: str):  # return a function, take file as its parameter
+def get_command_by_suffix(suffix: str, add_sudo):  # return a function, take file as its parameter
     if suffix == "py":
         command = os.environ.get("PYDAG_PYTHON_COMMAND", "")
         if command == "":
-            command =  get_default_executable("python", add_sudo=ADD_SUDO_BOOL)  
+            command =  get_default_executable("python", add_sudo=add_sudo)  
         return lambda file: command + " " + file
 
     # Jupyter notebook is little bit different

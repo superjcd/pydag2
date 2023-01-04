@@ -21,7 +21,7 @@ def submit(args):
         )
 
     command = compose_command_for_job(
-        file, to_run_new=False
+        file, to_run_new=False, add_sudo=False
     )  # always run a existing job
     cron = Plan(name=job_name)
 
