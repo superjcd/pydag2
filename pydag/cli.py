@@ -31,7 +31,10 @@ def submit(args):
             "No cron expresion provides, please define one via `--cron=[cron expression]` flag"
         )
     cron.command(command, every=cron_expression)
-    cron.run("update")
+    try:
+        cron.run("update")  # this problem is due to python plan module, for a none-root user, first time trigger a `update` will lead to a error
+    except:
+        cron.run("write")
 
 
 def delete(args):
