@@ -119,7 +119,7 @@ def get_command_by_suffix(suffix: str):  # return a function, take file as its p
     elif suffix == "ipynb":
         command = os.environ.get("PYDAG_JUPYTERNB_COMMAND", "")
         if command == "":
-            command =  get_default_jupyternb_executable("jupyter", False)
+            command =  get_default_jupyternb_executable("jupyter", add_sudo=ADD_SUDO_BOOL)
         return lambda file: command + " " + file + " --stdout"
 
     else:

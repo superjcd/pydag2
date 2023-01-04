@@ -8,7 +8,7 @@ from networkx import DiGraph
 from pygocron.pygocron import PyGoCron
 from .environments import HOST, PASSWORD, PREFIX
 from .utils import timestamp_to_datetime
-
+from .exceptions import PyDagException
 
 
 @dataclass
@@ -32,6 +32,12 @@ class TaskRecord:
 
 class BasicJobLogger:
     def __init__(self):
+        if HOST == "" or PASSWORD == "":
+            raise PyDagException(
+                f"""Please set `PYDAG_LOG_STORE_HOST` and `PYDAG_LOG_STORE_PASSWORD` envrionment varible,
+                                `PYDAG_LOG_STORE_HOST` is a redis connection host and `PYDAG_LOG_STORE_PASSWORD`is a redis connection password"""
+            )
+
         self._store = redis.Redis(host=HOST, password=PASSWORD, db=3)
 
     def record_job_info(self, job_name, dg: DiGraph):
