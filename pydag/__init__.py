@@ -2,4 +2,4 @@
 
 __author__ = """Jiang Chaodi"""
 __email__ = "929760274@qq.com"
-__version__ = "0.1.9"
+__version__ = "0.2.0"
