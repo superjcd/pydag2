@@ -7,6 +7,8 @@ import platform
 import subprocess
 import redis 
 import pickle
+import re
+from plan import Plan
 from enum import Enum
 from rich import print as rprint
 from rich.logging import RichHandler
@@ -183,8 +185,18 @@ def list_pipelines(job_name=None):
         for job_key in job_keys:
             name = job_key.decode().split(":")[1]
             jobs.append(name)
-        print("\n".join(jobs))
-        return jobs 
+
+        planned_jobs = get_all_planned_cron_jobs()
+
+        if jobs == []:
+            rprint("[red b]No jobs found")
+        else:
+            for job in jobs:
+                if job not in planned_jobs:
+                    rprint(f"[blue b]{job}")
+                else:
+                    rprint(f"[green b]*{job}")
+            return jobs 
     else:
         job_meta = _store.get(":".join([PREFIX, job_name, "META"]))
 
@@ -196,3 +208,10 @@ def list_pipelines(job_name=None):
         tasks = job_graph.nodes
         print("\n".join(tasks))
         return tasks
+
+
+
+def get_all_planned_cron_jobs():
+    cron = Plan()
+    cron_raw = cron.read_crontab()
+    return re.findall("# Begin Plan generated jobs for: (.*?)\n", cron_raw)
