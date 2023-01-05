@@ -84,7 +84,7 @@ class BasicJobLogger:
         if record_df.empty:
             rprint(f"[red b]\[Pydag]No logs for job `{job_name}`")
             return
-            
+
         record_df = pd.DataFrame(records).loc[:, 1:]
         record_df.columns = [
             "job_name",
@@ -169,9 +169,7 @@ def build_log_tree(tree, job_graph, root_task_names, tasks, method):
 
 def build_dependant_log_tree(tree, graph, root, tasks):
     try:
-        task_info = [task for task in tasks if task["task_name"] == root][
-            0
-        ]
+        task_info = [task for task in tasks if task["task_name"] == root][0]
     except IndexError:
         return
     status = task_info["status"]

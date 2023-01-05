@@ -70,8 +70,8 @@ class Job:
         raise ValueError(f"Cannnot find a task given the id: {id}")
 
     def get_root_tasks(self,):
-        root_ids = [n for n, d in self._graph.in_degree() if d == 0]    # [0]
-        
+        root_ids = [n for n, d in self._graph.in_degree() if d == 0]  # [0]
+
         task = []
         for root_id in root_ids:
             task.append(self.get_task_by_id(root_id))
@@ -113,14 +113,16 @@ class GoCronJob(Job):
         try:
             assert mode in ["submit", "execute"]
         except AssertionError:
-            raise PyDagException(f"Wrong mode: `{mode}`, should be one of [submit, execute]")
+            raise PyDagException(
+                f"Wrong mode: `{mode}`, should be one of [submit, execute]"
+            )
         logger.info(f"Start to run in `{mode}` mode")
         self._submit_tasks()
         logger.info("All tasks have been submitted")
-        
+
         if mode == "execute":
             self._run()
-    
+
     def _check_job_not_exists_before(self):
         if TO_RUN_NEW == "yes":
             logger.info("Prepare to run a brand new job")
@@ -154,13 +156,15 @@ class GoCronJob(Job):
     def _run(self,):
         logger.info(f"Job `{self.id}` trggered")
         root_tasks = self.get_root_tasks()
-        
+
         for task in root_tasks:
             RunQueue.put(task)
             CheckQueue.put(task)
 
         run_executor = RunTaskExecutor(job=self)
-        check_executor = CheckTaskExecutor(job=self, root_task_ids=[task.id for task in root_tasks])
+        check_executor = CheckTaskExecutor(
+            job=self, root_task_ids=[task.id for task in root_tasks]
+        )
 
         run_executor.start()
         check_executor.start()

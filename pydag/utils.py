@@ -5,7 +5,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import platform
 import subprocess
-import redis 
+import redis
 import pickle
 import re
 from plan import Plan
@@ -14,6 +14,7 @@ from rich import print as rprint
 from rich.logging import RichHandler
 from .exceptions import PyDagException
 from .environments import ADD_SUDO_BOOL, HOST, PASSWORD, PREFIX
+
 
 class TaskStatus(Enum):
     RUNNING = "running"
@@ -80,7 +81,7 @@ def compose_command(file: str, default_command_map={}, add_sudo=True) -> str:
         raise PyDagException(
             f"Wrong file name `{file}`, proper file name should have suffix, e.g, `.py`, `.ipynb`, etc"
         )
-    
+
     if default_command_map != {}:
         try:
             command_for_file = default_command_map[suffix]
@@ -92,9 +93,12 @@ def compose_command(file: str, default_command_map={}, add_sudo=True) -> str:
     if callable(command_for_file):
         return command_for_file(file_abpath)
     else:
-        raise PyDagException(f"Command for file type:`{suffix}` is not callable, command must be callable with one argument `file`")
+        raise PyDagException(
+            f"Command for file type:`{suffix}` is not callable, command must be callable with one argument `file`"
+        )
 
-def compose_command_for_job(file, to_run_new: bool, add_sudo:bool) -> str:
+
+def compose_command_for_job(file, to_run_new: bool, add_sudo: bool) -> str:
     if to_run_new:
         return (
             get_enviroment_set_command_by_platform("PYDAG_RUN_NEW", "yes")
@@ -109,11 +113,13 @@ def compose_command_for_job(file, to_run_new: bool, add_sudo:bool) -> str:
         )
 
 
-def get_command_by_suffix(suffix: str, add_sudo):  # return a function, take file as its parameter
+def get_command_by_suffix(
+    suffix: str, add_sudo
+):  # return a function, take file as its parameter
     if suffix == "py":
         command = os.environ.get("PYDAG_PYTHON_COMMAND", "")
         if command == "":
-            command =  get_default_executable("python", add_sudo=add_sudo)  
+            command = get_default_executable("python", add_sudo=add_sudo)
         return lambda file: command + " " + file
 
     # Jupyter notebook is little bit different
@@ -121,7 +127,9 @@ def get_command_by_suffix(suffix: str, add_sudo):  # return a function, take fil
     elif suffix == "ipynb":
         command = os.environ.get("PYDAG_JUPYTERNB_COMMAND", "")
         if command == "":
-            command =  get_default_jupyternb_executable("jupyter", add_sudo=ADD_SUDO_BOOL)
+            command = get_default_jupyternb_executable(
+                "jupyter", add_sudo=ADD_SUDO_BOOL
+            )
         return lambda file: command + " " + file + " --stdout"
 
     else:
@@ -195,8 +203,8 @@ def list_pipelines(job_name=None):
                 if job not in planned_jobs:
                     rprint(f"[blue b]{job}")
                 else:
-                    rprint(f"[green b]*{job}")
-            return jobs 
+                    rprint(f"[green b]{job} {get_cron_expression_for_job(job)}")  
+            return jobs
     else:
         job_meta = _store.get(":".join([PREFIX, job_name, "META"]))
 
@@ -210,8 +218,16 @@ def list_pipelines(job_name=None):
         return tasks
 
 
-
 def get_all_planned_cron_jobs():
     cron = Plan()
     cron_raw = cron.read_crontab()
     return re.findall("# Begin Plan generated jobs for: (.*?)\n", cron_raw)
+
+
+def get_cron_expression_for_job(job_name: str):
+    cron = Plan()
+    cron_raw = cron.read_crontab()
+
+    pattern = f"# Begin Plan generated jobs for: {job_name}\n(.*?)\n"
+    first_cron_expression = re.search(pattern, cron_raw).group(1)
+    return " ".join(first_cron_expression.split(" ")[:5])

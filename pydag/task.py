@@ -39,7 +39,7 @@ class Task:
 
 
 class GoCronTask(Task):
-    def __init__(self, name: str, command: str, node_id:int=None):
+    def __init__(self, name: str, command: str, node_id: int = None):
         super().__init__(name, command)
         self._task_logger = BasicJobLogger()
         self._node_id = node_id if node_id else 1
@@ -72,8 +72,7 @@ class GoCronTask(Task):
                 command=self.command,
                 level=2,
                 timeout=TASK_TIMEOUT,
-                host_id=self._node_id 
-
+                host_id=self._node_id,
             )
         elif TO_RUN_NEW == "no":
             task_id = task_manager.get_task_id_by_name(task_name)

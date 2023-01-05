@@ -46,7 +46,7 @@ class RunTaskExecutor(Thread):
                 status = predecessor.check_run_status(self._job._task_manager)
                 if status == TaskStatus.SUCCESS:
                     task_predecessors_success_num += 1
-            
+
             # print(50, task.id, len(predecessors), task_predecessors_success_num)
             if len(predecessors) == task_predecessors_success_num:
                 try:
@@ -122,7 +122,7 @@ class CheckTaskExecutor(Thread):
                 continue
 
             elif status == TaskStatus.SUCCESS:
-                success_checked += 1  
+                success_checked += 1
 
                 successors = self._job.get_successors(task.id)
 

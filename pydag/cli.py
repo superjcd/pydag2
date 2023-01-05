@@ -32,7 +32,9 @@ def submit(args):
         )
     cron.command(command, every=cron_expression)
     try:
-        cron.run("update")  # this problem is due to python plan module, for a none-root user, first time trigger a `update` will lead to a error
+        cron.run(
+            "update"
+        )  # this problem is due to python plan module, for a none-root user, first time trigger a `update` will lead to a error
     except:
         cron.run("write")
 
@@ -55,7 +57,6 @@ def delete(args):
 
 def log(args):
     bl = BasicJobLogger()
-    
 
     style = args.style
 
@@ -64,10 +65,11 @@ def log(args):
     else:
         bl.log_job(args.job_name, args.n, style)
 
-    
+
 def list(args):
     job_name = args.job_name
     _ = list_pipelines(job_name)
+
 
 class Submit:
     @staticmethod
@@ -117,7 +119,7 @@ class Log:
             type=str,
             default="flat",
             choices=["flat", "tree"],
-            help="Print the log in `tree` format or `flat` format"
+            help="Print the log in `tree` format or `flat` format",
         )
         log_parser.set_defaults(func=log)
 
@@ -135,6 +137,7 @@ class Delete:
         )
         delete_parser.set_defaults(func=delete)
 
+
 class List:
     @staticmethod
     def register_subcommand(subparser):
@@ -147,6 +150,7 @@ class List:
             help="Job name, all tasks associate with the job name then will be list",
         )
         list_parser.set_defaults(func=list)
+
 
 def main():
     parser = ArgumentParser()
