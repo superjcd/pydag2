@@ -210,8 +210,8 @@ In [build a workflow](#build-a-workflow) section, we define several enviroments,
 |----------|:-------------:|------:|
 | PYDAG_LOG_PREFIX |  Prfix for the redis key for the log store | Pydag |
 | PYDAG_ROUNDS_TIME |  The pydag  will check the `status` of a task after every  `PYDAG_ROUNDS_TIME`  |   10(second) |
-| PYDAG_LOG_STORE_HOST| Redis host for log store |    (empty, must be set) |
-|PYDAG_LOG_STORE_PASSWORD| Redis password |    (empty, must be set) |
+| PYDAG_LOG_STORE_HOST| Redis host for log store |    (empty, required) |
+|PYDAG_LOG_STORE_PASSWORD| Redis password |    (empty, required) |
 |PYDAG_RUN_NEW| To run a new pipeline or existing one,  set to `yes` will always submit and run a new pipeline, `no` will run an existing one |    yes |
 |PYDAG_TASK_TIMEOUT|Nobody want their tasks run forever, fortunately you can set this varible to terminate the task after the given timeout , unit is second| 3600|
 
