@@ -29,7 +29,7 @@ Now, `pydag` relys on a job scheduling system called [gocron](https://github.com
 The good news is the tool is written and build with go, so it's light(Again, airflow is just too heavy), bad news is it seems not well documented, and its only documentation is written in chineses. But most of time it will not bother you, cuz pydag will connect it via its python sdk called `pygocron`(which will be install after installing the `pydag` automatically)。  
 If you konw Chinese, you can go to gocron's homepage, otherwise you can go to [here](https://github.com/superjcd/pygocron) and follow the **Install the gocron** section to install gocron.
 
-> Although pydag can run a workflow locally ignoring the system you are using, but when it comes to the scheduling part, it is better to put on a Linux machine(eventually the workflow hand over to cron table)
+> Although pydag can run a workflow locally ignoring the system you are using, but when it comes to the scheduling part, it is better to run on a Linux machine(eventually the workflow hand over to cron table)
 
 ## How to use
 ### Build a workflow
@@ -90,7 +90,7 @@ job.run(mode="execute")
 Let's break down the syntex step by step: 
 - Step 1, define a job,  `GoCronJob` takes two arguments, one for job name(note job name cannot be duplicated, if you built a job with same name before, u have to use another), another for a `taskmanager`, we use `pygocron.PyGoCron` as our taskmanager
 - Step2, define tasks related to the job, `GoCronTask` takes two arguments, one for task name, another for a command（shell command）
-- Step3, very important part, you have to define the relationships betweeen tasks by using `setdownstream` or `setupstream` method. Note, you can never define a dependency like `task1 -> task2 -> task1`, cuz this will lead to a infinite running loop,  fortunately `pydag` will detect the bad cyclic relationships  for you 
+- Step3, very important part, you have to define the relationships betweeen tasks by using `setdownstream` or `setupstream` method. Note, you can never define a dependency like `task1 -> task2 -> task1`, cuz this will lead to a infinite running loop,  fortunately `pydag` will detect the bad cyclic pattern  for you 
 - The last step, you just add all tasks you defined to the job, then kick it off by the `run` method。Note the `print` will output a digrah(`png` format) to your current work directory
 
 To run this workflow, say `example.py`, you can just run:
@@ -133,7 +133,7 @@ The `list` command will list all the validated pipeline to the terminal:
 ```shell
 pydag list
 ```
-Output int erminal looks like:
+Output in the terminal looks like:
 ```shell
 TestJob4
 TestJob3
@@ -160,7 +160,7 @@ To delete a pipeline, just by running the following command:
 ```shell
 pydag delete TestJob
 ```
-That's it 
+That's it, pretty straitforward
 
 ### Log
 pydag support both `job` level log and `task` level logging.
@@ -180,12 +180,12 @@ Note the color also shows the status of the task:
 - `blue` for runninng
 - `yellow` for pendding
 
-The above log  doesn't show the dependency between tasks well, if you want to, you can specify a `style` flag
+The above log  doesn't show the dependency between tasks very well, if you want to, you can add a `style` flag
 ```shell
 pydag log TestJob --style=tree
 ```
 
-Then the log will shown in a `tree` style:
+Then the log will be displayed in a `tree` style, which indicate the relationships between task very well:
 
 <img src="resource/images/JobLogTree.png" alt="drawing" width="500"/>
 
@@ -196,12 +196,12 @@ pydag log TestJob --style=tree -n=5
 ```
 
 #### Get task level logs
-Getting task level log is similar, the only you need to do is just put a `--task_name` flag:
+Getting task level log is quite similar, the only thing you need to do is just add a `--task_name` flag:
 
 ```shell
 pydag log TestJob --task_name="Sync Data" -n=1
 ```
-Again the `n` flag will limit the number of logs to be shown
+Again,  the `n` flag will limit the number of logs to be shown
 
 ## The envrionment varibles
 In [build a workflow](#build-a-workflow) section, we define several enviroments, here are full list of enviroments varible you can set:
@@ -218,12 +218,13 @@ In [build a workflow](#build-a-workflow) section, we define several enviroments,
 ## Case study
 
 ### Run a remote task
-The previous example, we render our tasks to the default node(the server you deploy your gocron master node at), but some sophisticated case require a remote task run, which task will be rendered to and ran at that remote server.  
+The previous example, we render our tasks to the default node(the serv er you deploy your gocron master node at), but some sophisticated case will require a remote task run, which task will be rendered to a remote server.  
 To Achieve that, you have to first deploy a `gocron-node` at that remote server(same process as you deploy `gocron`, but this time you don't need the `gocron` file, just use `gocron-node-*` and deploy it, check [here](https://github.com/superjcd/pygocron#Prerequisite) if u forgot), and make sure you exposed(open) the node port too(default is `5921`).  
 Then you have to let  `gocron` know you added that node, you can either go to the `gocron` admin page or use `pygocron` to do it for you:
 ```pyhton
 pgc = PyGoCron()
 
+# Just run once
 pgc.add_new_node(ip="your node ip", port="your node port", alias="name for the node", remark="some comment")
 ```
 
